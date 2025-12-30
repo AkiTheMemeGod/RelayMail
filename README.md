@@ -58,5 +58,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <p align="center">
   <strong>Built for developers, by developers.</strong><br>
-  <a href="https://relaymail.com">Start Sending Today</a>
+  <a href="https://relaymail.pythonanywhere.com">Start Sending Today</a>
 </p>
