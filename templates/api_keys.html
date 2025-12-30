@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex justify-between items-center" style="margin-bottom: 24px;">
+    <div>
+        <h1>API Keys</h1>
+        <p style="color: var(--text-secondary); margin-top: -24px; margin-bottom: 24px;">Manage access tokens for your
+            applications.</p>
+    </div>
+    <button class="btn btn-secondary" onclick="openCreateModal()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            style="margin-right: 6px;">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Create New Key
+    </button>
+</div>
+
+<div id="keys-list" class="key-list">
+    <!-- Keys will be injected here via JS -->
+    <div class="loading-state">
+        <div class="spinner"></div>
+    </div>
+</div>
+
+<!-- Create Key Modal -->
+<div id="create-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Create API Key</h2>
+            <p>Give your key a name to identify it later.</p>
+        </div>
+        <div class="form-group">
+            <label>Key Name</label>
+            <input type="text" id="key-name-input" placeholder="e.g. Production Server">
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="closeModal('create-modal')">Cancel</button>
+            <button class="btn" onclick="submitCreateKey()">Create Key</button>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div id="success-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>API Key Generated</h2>
+            <p>Save this key now. You won't be able to see it again!</p>
+        </div>
+
+        <div class="copy-field">
+            <code id="generated-key-display">...</code>
+            <button class="btn btn-secondary" style="padding: 4px 8px;" onclick="copyKey()">Copy</button>
+        </div>
+
+        <div class="alert-error" style="background: rgba(255, 200, 0, 0.1); color: #ffcc00; border: 1px solid #333;">
+            ⚠️ This key is only visible once. If you lose it, you'll need to create a new one.
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn" onclick="closeModal('success-modal')">I've saved it</button>
+        </div>
+    </div>
+</div>
+
+<!-- Revoke Confirmation Modal -->
+<div id="revoke-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Revoke API Key</h2>
+            <p>Are you sure you want to revoke this key? This action cannot be undone and any applications using this
+                key will stop working immediately.</p>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="closeModal('revoke-modal')">Cancel</button>
+            <button class="btn" style="background-color: #ff4444; color: white;" onclick="confirmRevoke()">Revoke
+                Key</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => loadKeys());
+</script>
+{% endblock %}
