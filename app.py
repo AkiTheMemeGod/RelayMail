@@ -138,12 +138,26 @@ def send_email(api_key):
             msg.attach(MIMEText(body_html, 'html'))
 
         # Send email
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        server.starttls()
-        server.login(SMTP_USERNAME, SMTP_PASSWORD)
-        text = msg.as_string()
-        server.sendmail(SMTP_USERNAME, recipient, text)
-        server.quit()
+        # Send email
+        print(f"DEBUG: Connecting to SMTP {SMTP_SERVER}:{SMTP_PORT} as {SMTP_USERNAME}") # User log for PA
+        
+        server = smtplib.SMTP()
+        # server.set_debuglevel(1) # Optional: enable for deep debugging
+        
+        try:
+            server.connect(SMTP_SERVER, SMTP_PORT)
+            server.starttls()
+            server.login(SMTP_USERNAME, SMTP_PASSWORD)
+            text = msg.as_string()
+            server.sendmail(SMTP_USERNAME, recipient, text)
+        except Exception as smtp_err:
+             print(f"SMTP Error: {smtp_err}")
+             raise smtp_err
+        finally:
+             try:
+                 server.quit()
+             except:
+                 pass
         
         log.status = "sent"
         db.session.add(log)
