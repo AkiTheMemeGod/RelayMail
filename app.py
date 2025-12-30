@@ -165,12 +165,16 @@ def send_email(api_key):
 
         return jsonify({"id": log.id, "message": "Email sent successfully"}), 200
 
-    except Exception as e:
+        except Exception as e:
         log.status = "failed"
         log.error_message = str(e)
         db.session.add(log)
         db.session.commit()
-        return jsonify({"error": str(e)}), 500
+        # Return helpful debug info (remove in production later)
+        return jsonify({
+            "error": str(e), 
+            "debug": f"Failed to connect to {SMTP_SERVER}:{SMTP_PORT}"
+        }), 500
 
 # --- Dashboard API ---
 @app.route('/api/v1/keys', methods=['GET', 'POST'])
