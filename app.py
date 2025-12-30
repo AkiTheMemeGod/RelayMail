@@ -11,7 +11,8 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from models import db, ApiKey, EmailLog, User
 
 # Load environment variables
-load_dotenv()
+basedir = os.path.abspath(os.path.dirname(__file__))
+load_dotenv(os.path.join(basedir, '.env'))
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "supersecretkey") # Change this in production
@@ -30,12 +31,6 @@ login_manager.init_app(app)
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
-
-# Configuration
-SMTP_SERVER = os.getenv("MAIL_SERVER")
-SMTP_PORT = int(os.getenv("MAIL_PORT", 587))
-SMTP_USERNAME = os.getenv("MAIL_USERNAME")
-SMTP_PASSWORD = os.getenv("MAIL_PASSWORD")
 
 # Create DB tables
 with app.app_context():
@@ -138,18 +133,30 @@ def send_email(api_key):
             msg.attach(MIMEText(body_html, 'html'))
 
         # Send email
-        # Send email
-        print(f"DEBUG: Connecting to SMTP {SMTP_SERVER}:{SMTP_PORT} as {SMTP_USERNAME}") # User log for PA
+        # Clean config variables
+        smtp_server = (os.getenv("MAIL_SERVER") or "").strip()
+        smtp_port = int(os.getenv("MAIL_PORT", 587))
+        smtp_user = (os.getenv("MAIL_USERNAME") or "").strip()
+        smtp_pass = (os.getenv("MAIL_PASSWORD") or "").strip()
+
+        if not smtp_server or not smtp_user or not smtp_pass:
+             error_msg = f"SMTP Config Missing. Server: '{smtp_server}', User: '{smtp_user}'"
+             print(f"ERROR: {error_msg}")
+             return jsonify({"error": "Server configuration error", "debug": error_msg}), 500
+
+        print(f"DEBUG: Connecting to SMTP {smtp_server}:{smtp_port} as {smtp_user}") 
         
         server = smtplib.SMTP()
-        # server.set_debuglevel(1) # Optional: enable for deep debugging
+        # server.set_debuglevel(1) 
         
         try:
-            server.connect(SMTP_SERVER, SMTP_PORT)
-            server.starttls()
-            server.login(SMTP_USERNAME, SMTP_PASSWORD)
+            server.connect(smtp_server, smtp_port)
+            server.ehlo() # Identify ourselves
+            server.starttls() # Secure the connection
+            server.ehlo() # Re-identify as encrypted
+            server.login(smtp_user, smtp_pass)
             text = msg.as_string()
-            server.sendmail(SMTP_USERNAME, recipient, text)
+            server.sendmail(smtp_user, recipient, text)
         except Exception as smtp_err:
              print(f"SMTP Error: {smtp_err}")
              raise smtp_err
@@ -165,7 +172,7 @@ def send_email(api_key):
 
         return jsonify({"id": log.id, "message": "Email sent successfully"}), 200
 
-        except Exception as e:
+    except Exception as e:
         log.status = "failed"
         log.error_message = str(e)
         db.session.add(log)
