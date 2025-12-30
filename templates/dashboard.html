@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div class="dashboard-title">
+        <h1>Overview</h1>
+        <p>Welcome back! Here's what's happening today.</p>
+    </div>
+    <div style="text-align: right;">
+        <div class="live-indicator"
+            style="display: inline-flex; margin-bottom: 12px; background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.2);">
+            <span class="pulse-dot" style="background: #6366f1; box-shadow: 0 0 10px #6366f1;"></span>
+            <span style="font-size: 0.8rem; color: #818cf8; font-weight: 600; letter-spacing: 0.05em;">PLAN:
+                DEVELOPER</span>
+        </div>
+        <div>
+            <button class="btn btn-secondary" onclick="loadEmails()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    style="margin-right: 6px;">
+                    <path d="M23 4v6h-6"></path>
+                    <path d="M1 20v-6h6"></path>
+                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                </svg>
+                Refresh Data
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats Row -->
+<div class="metrics-grid" style="margin-bottom: 32px;">
+    <div class="card metric-card">
+        <h3>Total Sent</h3>
+        <div class="metric-value" id="dashboard-sent">...</div>
+    </div>
+    <div class="card metric-card">
+        <h3>Success Rate</h3>
+        <div class="metric-value" id="dashboard-rate">...</div>
+        <div style="font-size: 0.8rem; color: #a1a1aa; margin-top: 4px;">Last 24 hours</div>
+    </div>
+    <div class="card metric-card">
+        <h3>Active Keys</h3>
+        <div class="metric-value" id="dashboard-active-keys">...</div>
+        <div style="font-size: 0.8rem; color: #a1a1aa; margin-top: 4px;">Operational</div>
+    </div>
+</div>
+
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Status</th>
+                <th>To</th>
+                <th>Subject</th>
+                <th>API Key</th>
+                <th>Sent</th>
+            </tr>
+        </thead>
+        <tbody id="emails-table">
+            <tr>
+                <td colspan="5">Loading...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        loadEmails();
+        loadDashboardMetrics();
+    });
+
+    async function loadDashboardMetrics() {
+        try {
+            const res = await fetch('/api/v1/metrics');
+            const data = await res.json();
+            document.getElementById('dashboard-sent').textContent = data.sent;
+            document.getElementById('dashboard-rate').textContent = data.rate + '%';
+            document.getElementById('dashboard-active-keys').textContent = data.active_keys;
+        } catch (e) {
+            console.error(e);
+        }
+    }
+</script>
+{% endblock %}
