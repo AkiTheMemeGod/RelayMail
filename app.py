@@ -115,15 +115,30 @@ def send_email(api_key):
     body_text = data.get("body")
     body_html = data.get("html")
     
+    
     if not body_text and not body_html:
         return jsonify({"error": "Missing email content. Provide 'body' (text) or 'html'."}), 400
+
+    # Load and Clean Config
+    smtp_server = (os.getenv("MAIL_SERVER") or "").strip()
+    try:
+        smtp_port = int(os.getenv("MAIL_PORT", 587))
+    except ValueError:
+        smtp_port = 587
+    smtp_user = (os.getenv("MAIL_USERNAME") or "").strip()
+    smtp_pass = (os.getenv("MAIL_PASSWORD") or "").strip()
+
+    if not smtp_server or not smtp_user or not smtp_pass:
+            error_msg = f"SMTP Config Missing. Server: '{smtp_server}', User: '{smtp_user}'"
+            print(f"ERROR: {error_msg}")
+            return jsonify({"error": "Server configuration error", "debug": error_msg}), 500
 
     log = EmailLog(recipient=recipient, subject=subject, api_key_id=api_key.id, status="pending")
 
     try:
         # Create message
         msg = MIMEMultipart('alternative')
-        msg['From'] = SMTP_USERNAME
+        msg['From'] = smtp_user
         msg['To'] = recipient
         msg['Subject'] = subject
         
@@ -133,36 +148,33 @@ def send_email(api_key):
             msg.attach(MIMEText(body_html, 'html'))
 
         # Send email
-        # Clean config variables
-        smtp_server = (os.getenv("MAIL_SERVER") or "").strip()
-        smtp_port = int(os.getenv("MAIL_PORT", 587))
-        smtp_user = (os.getenv("MAIL_USERNAME") or "").strip()
-        smtp_pass = (os.getenv("MAIL_PASSWORD") or "").strip()
-
-        if not smtp_server or not smtp_user or not smtp_pass:
-             error_msg = f"SMTP Config Missing. Server: '{smtp_server}', User: '{smtp_user}'"
-             print(f"ERROR: {error_msg}")
-             return jsonify({"error": "Server configuration error", "debug": error_msg}), 500
-
         print(f"DEBUG: Connecting to SMTP {smtp_server}:{smtp_port} as {smtp_user}") 
         
-        server = smtplib.SMTP()
-        # server.set_debuglevel(1) 
-        
+        server = None
         try:
-            server.connect(smtp_server, smtp_port)
-            server.ehlo() # Identify ourselves
-            server.starttls() # Secure the connection
-            server.ehlo() # Re-identify as encrypted
+            if smtp_port == 465:
+                server = smtplib.SMTP_SSL(smtp_server, smtp_port)
+                server.ehlo()
+            else:
+                server = smtplib.SMTP(smtp_server, smtp_port)
+                server.ehlo()
+                server.starttls()
+                server.ehlo()
+            
             server.login(smtp_user, smtp_pass)
             text = msg.as_string()
             server.sendmail(smtp_user, recipient, text)
+            
         except Exception as smtp_err:
              print(f"SMTP Error: {smtp_err}")
+             # Specific helpful message for PA users
+             if "Network is unreachable" in str(smtp_err) or "Errno 101" in str(smtp_err):
+                 raise Exception("Network Unreachable. On PythonAnywhere Free Tier? You can ONLY use 'smtp.gmail.com' on port 587 or 465. Other servers are blocked.")
              raise smtp_err
         finally:
              try:
-                 server.quit()
+                 if server:
+                    server.quit()
              except:
                  pass
         
@@ -180,7 +192,7 @@ def send_email(api_key):
         # Return helpful debug info (remove in production later)
         return jsonify({
             "error": str(e), 
-            "debug": f"Failed to connect to {SMTP_SERVER}:{SMTP_PORT}"
+            "debug": f"Failed to connect to {smtp_server}:{smtp_port}"
         }), 500
 
 # --- Dashboard API ---
