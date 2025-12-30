@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Metrics</h1>
+
+<div class="metrics-grid">
+    <div class="card metric-card">
+        <h3>Total Emails</h3>
+        <div class="metric-value" id="metric-total">-</div>
+    </div>
+    <div class="card metric-card">
+        <h3>Delivered</h3>
+        <div class="metric-value" style="color: var(--accent-color)" id="metric-sent">-</div>
+    </div>
+    <div class="card metric-card">
+        <h3>Failed</h3>
+        <div class="metric-value" style="color: #ff4444" id="metric-failed">-</div>
+    </div>
+    <div class="card metric-card">
+        <h3>Success Rate</h3>
+        <div class="metric-value" id="metric-rate">-</div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => loadMetrics());
+</script>
+{% endblock %}
