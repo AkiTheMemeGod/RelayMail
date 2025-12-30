@@ -14,8 +14,8 @@
     {% if current_user.is_authenticated %}
     <aside class="sidebar">
         <div class="logo">
-            <div style="width:20px; height:20px; background:white; border-radius:4px;"></div>
-            RelayMail
+            <img src="{{ url_for('static', filename='logo.svg') }}" alt="RelayMail Logo"
+                style="width:auto; height:80px;">
         </div>
         <nav style="display: flex; flex-direction: column; gap: 8px;">
             <a href="/dashboard" class="nav-link {% if request.path == '/dashboard' %}active{% endif %}">
@@ -62,8 +62,8 @@
         {% if current_user.is_authenticated %}
         <header class="site-header">
             <div class="big-brand">
-                <div class="brand-logo-rect"></div>
-                RelayMail
+                <img src="{{ url_for('static', filename='logo.svg') }}" alt="RelayMail Logo" class="brand-logo-rect"
+                    style="background: none; width:auto; height:40px;">
             </div>
             <div class="command-bar-container">
                 <div class="command-bar" onclick="document.getElementById('cmd-input').focus()">

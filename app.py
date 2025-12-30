@@ -5,7 +5,7 @@ from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from flask import Flask, request, jsonify, render_template, redirect, url_for, flash
-from flask_cors import CORS
+# from flask_cors import CORS
 from dotenv import load_dotenv
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from models import db, ApiKey, EmailLog, User
@@ -16,7 +16,7 @@ load_dotenv(os.path.join(basedir, '.env'))
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "supersecretkey") # Change this in production
-CORS(app)
+# CORS(app)
 
 # Database Config
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///relaymail.db'
